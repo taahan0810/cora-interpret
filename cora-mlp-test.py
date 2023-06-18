@@ -9,3 +9,9 @@ from torch.utils.data import Dataset, DataLoader
 from dgl.data import CoraGraphDataset
 
 # Ignore warnings
+import warnings
+warnings.filterwarnings("ignore")
+
+from cora-mlp-train import MyMLP
+
+testloader = DataLoader(X_test,batch_size=batch_size,shuffle=False,num_workers=0)  
