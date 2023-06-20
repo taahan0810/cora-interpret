@@ -14,7 +14,10 @@ warnings.filterwarnings("ignore")
 
 from cora_mlp_train import MyMLP, X_test, y_test, batch_size, max_epochs
 
-testloader = DataLoader(X_test,batch_size=batch_size,shuffle=False,num_workers=0)  
+# print(f"{X_test.shape}")
+# print(f"{y_test.shape}")
+
+testloader = DataLoader(torch.cat([X_test,y_test],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)  
 
 model = MyMLP()
 model.load_state_dict(torch.load('model.pkl'))
@@ -27,7 +30,7 @@ with torch.no_grad():
     for epoch in range(max_epochs):
         for i,data in enumerate(testloader):
 
-            inputs = data
+            inputs = data[:,:-1]
             labels = data[:,-1]
 
             outputs = model(inputs)

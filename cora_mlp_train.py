@@ -16,9 +16,10 @@ class MyMLP(nn.Module):
     def __init__(self):
         super(MyMLP, self).__init__()
 
-        self.layer1 = nn.Linear(1433,512)
-        self.layer2 = nn.Linear(512,128)
-        self.layer3 = nn.Linear(128,7)
+        self.layer1 = nn.Linear(1433,16)
+        self.layer2 = nn.Linear(16,7)
+        self.dropout = nn.Dropout(0.5)
+        # self.layer3 = nn.Linear(128,7)
 
     def forward(self,x):
 
@@ -26,18 +27,18 @@ class MyMLP(nn.Module):
         # x = torch.unsqueeze(x,dim=1)
         # print(x.shape)
 
-        x = F.relu(self.layer1(x))
-        x = F.relu(self.layer2(x))
-        x = self.layer3(x)
+        x = self.dropout(F.relu(self.layer1(self.dropout(x))))
+        x = self.layer2(x)
+        # x = self.layer3(x)
 
         return x
 
 net = MyMLP()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(),lr=0.001)
+optimizer = optim.Adam(net.parameters(),lr=0.01,weight_decay=5e-4)
 
-max_epochs = 1000
+max_epochs = 200
 
 batch_size = 4
 
@@ -66,6 +67,7 @@ y_train, y_val, y_test = label[train_mask], label[val_mask], label[test_mask]
 # print(y_train.unsqueeze(dim=0).shape)
 y_train = y_train.unsqueeze(dim=1)
 y_val = y_val.unsqueeze(dim=1)
+y_test = y_test.unsqueeze(dim=1)
 
 trainloader = DataLoader(torch.cat([X_train,y_train],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
 valloader = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
@@ -73,7 +75,7 @@ valloader = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuf
 # TRAINING and VALIDATION
 
 if __name__ == '__main__':
-    patience = 20
+    # patience = 40
     best = 1e9
     best_t = 0
     cnt_wait = 0
@@ -136,9 +138,9 @@ if __name__ == '__main__':
         else:
             cnt_wait += 1
 
-        if cnt_wait == patience:
-            print('Early Stopping!')
-            break
+        # if cnt_wait == patience:
+        #     print('Early Stopping!')
+        #     break
 
         
     print(f'Loading {best_t}th epoch')
