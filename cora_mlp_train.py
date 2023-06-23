@@ -12,13 +12,20 @@ from dgl.data import CoraGraphDataset
 import warnings
 warnings.filterwarnings("ignore")
 
+# diff droput layers 
+# remove droput from input 
+# increase layers 
+# 20 40 droput percentages 
+
+
 class MyMLP(nn.Module):
     def __init__(self):
         super(MyMLP, self).__init__()
 
         self.layer1 = nn.Linear(1433,16)
         self.layer2 = nn.Linear(16,7)
-        self.dropout = nn.Dropout(0.5)
+        self.dropout1 = nn.Dropout(0.5)
+        # self.dropout2 = nn.Dropout(0.5)
         # self.layer3 = nn.Linear(128,7)
 
     def forward(self,x):
@@ -27,7 +34,7 @@ class MyMLP(nn.Module):
         # x = torch.unsqueeze(x,dim=1)
         # print(x.shape)
 
-        x = self.dropout(F.relu(self.layer1(self.dropout(x))))
+        x = self.dropout1(F.relu(self.layer1(self.dropout1(x))))
         x = self.layer2(x)
         # x = self.layer3(x)
 
@@ -75,7 +82,7 @@ valloader = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuf
 # TRAINING and VALIDATION
 
 if __name__ == '__main__':
-    # patience = 40
+    patience = 20
     best = 1e9
     best_t = 0
     cnt_wait = 0
@@ -138,9 +145,9 @@ if __name__ == '__main__':
         else:
             cnt_wait += 1
 
-        # if cnt_wait == patience:
-        #     print('Early Stopping!')
-        #     break
+        if cnt_wait == patience:
+            print('Early Stopping!')
+            break
 
         
     print(f'Loading {best_t}th epoch')

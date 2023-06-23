@@ -7,12 +7,16 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from dgl.data import CoraGraphDataset
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
 
-from cora_mlp_train import MyMLP, X_test, y_test, batch_size, max_epochs
+from cora_mlp_train import MyMLP, X_test, y_test, batch_size
 
 # print(f"{X_test.shape}")
 # print(f"{y_test.shape}")
@@ -26,20 +30,35 @@ model.eval()
 correct = 0
 total = 0
 
+y_pred = []
+shuff_y_test = []
+
 with torch.no_grad():
-    for epoch in range(max_epochs):
-        for i,data in enumerate(testloader):
+    for i,data in enumerate(testloader):
 
-            inputs = data[:,:-1]
-            labels = data[:,-1]
+        inputs = data[:,:-1]
+        labels = data[:,-1]
 
-            outputs = model(inputs)
-            _,predictions = torch.max(outputs, 1)
+        outputs = model(inputs)
+        _,predictions = torch.max(outputs, 1)
 
-            total += labels.size(0)
-            correct += (predictions == labels).sum().item()
-            # print(f"{predictions=}")
-            # print(outputs)
+        # print(predictions.tolist())
 
-print(f'Accuracy of the network on the 1000 test samples: {100 * correct // total} %')
+        y_pred.extend(predictions.tolist())
+        shuff_y_test.extend(labels.tolist())
+        # total += labels.size(0)
+        # correct += (predictions == labels).sum().item()
+        # print(f"{predictions=}")
+        # print(outputs)
+
+cf_matrix = confusion_matrix(shuff_y_test, y_pred)
+sns.heatmap(cf_matrix, annot=True, fmt='g')
+plt.savefig('cf_matrix.png')
+
+print(f'Accuracy : {100 * accuracy_score(shuff_y_test,y_pred)} %')
+print(classification_report(shuff_y_test, y_pred))
+# print(f'Precision : {100 * precision_score(shuff_y_test,y_pred)} %')
+# print(f'Recall : {100 * recall_score(shuff_y_test,y_pred)} %')
+# print(f'F1 Score : {100 * f1_score(shuff_y_test,y_pred)} %')
+
 
