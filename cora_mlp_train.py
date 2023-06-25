@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from dgl.data import CoraGraphDataset
+from dgl.data import CoraGraphDataset   
 
 # Ignore warnings
 import warnings
@@ -76,12 +76,12 @@ y_train = y_train.unsqueeze(dim=1)
 y_val = y_val.unsqueeze(dim=1)
 y_test = y_test.unsqueeze(dim=1)
 
-trainloader = DataLoader(torch.cat([X_train,y_train],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
-valloader = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
+trainl = DataLoader(torch.cat([X_train,y_train],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
+vall = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
 
 # TRAINING and VALIDATION
 
-if __name__ == '__main__':
+def main_train(trainloader, valloader, id=0):
     patience = 20
     best = 1e9
     best_t = 0
@@ -141,7 +141,7 @@ if __name__ == '__main__':
             best = running_vloss/lab_sz
             best_t = epoch + 1
             cnt_wait = 0
-            torch.save(net.state_dict(), 'model.pkl')
+            torch.save(net.state_dict(), f'model_{id}.pkl')
         else:
             cnt_wait += 1
 
@@ -152,6 +152,9 @@ if __name__ == '__main__':
         
     print(f'Loading {best_t}th epoch')
     print("Finished Training")
+
+if __name__ == '__main__':
+    main_train(trainloader=trainl,valloader=vall)
 
 
 
