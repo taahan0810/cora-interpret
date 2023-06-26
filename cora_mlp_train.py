@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-from dgl.data import CoraGraphDataset   
+from dgl.data import CoraGraphDataset  
+import wandb 
 
 # Ignore warnings
 import warnings
@@ -19,11 +20,11 @@ warnings.filterwarnings("ignore")
 
 
 class MyMLP(nn.Module):
-    def __init__(self):
+    def __init__(self, input_dim, hidden_dim, output_dim):
         super(MyMLP, self).__init__()
 
-        self.layer1 = nn.Linear(1433,16)
-        self.layer2 = nn.Linear(16,7)
+        self.layer1 = nn.Linear(input_dim,hidden_dim)
+        self.layer2 = nn.Linear(hidden_dim,output_dim)
         self.dropout1 = nn.Dropout(0.5)
         # self.dropout2 = nn.Dropout(0.5)
         # self.layer3 = nn.Linear(128,7)
@@ -39,11 +40,8 @@ class MyMLP(nn.Module):
         # x = self.layer3(x)
 
         return x
-
-net = MyMLP()
-
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(),lr=0.01,weight_decay=5e-4)
+    
+learning_rate = 0.01
 
 max_epochs = 200
 
@@ -78,6 +76,33 @@ y_test = y_test.unsqueeze(dim=1)
 
 trainl = DataLoader(torch.cat([X_train,y_train],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
 vall = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
+
+input_dim = feat.shape[1]
+hidden_dim = 16
+output_dim = dataset.num_classes
+
+net = MyMLP(input_dim=input_dim,hidden_dim=hidden_dim,output_dim=output_dim)
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(),lr=learning_rate,weight_decay=5e-4)
+
+
+# start a new wandb run to track this script
+wandb.init(
+    # set the wandb project where this run will be logged
+    project="cora_mlp_train",
+    
+    # track hyperparameters and run metadata
+    config={
+    "learning_rate": learning_rate,
+    "architecture": "MLP",
+    "dataset": "CoraGraphDataset",
+    "epochs": max_epochs,
+    "batch size": batch_size,
+    "hidden dim": hidden_dim,
+    "optimizer": "Adam"
+    }
+)
 
 # TRAINING and VALIDATION
 
@@ -137,6 +162,8 @@ def main_train(trainloader, valloader, id=0):
 
         print(f'[{epoch + 1}] Validation loss: {running_vloss/lab_sz:.3f}')
 
+        wandb.log({'Epoch':epoch+1,'Train Loss':running_loss/lab_sz,'Val Loss':running_vloss/lab_sz})
+
         if running_vloss/lab_sz < best:
             best = running_vloss/lab_sz
             best_t = epoch + 1
@@ -152,6 +179,8 @@ def main_train(trainloader, valloader, id=0):
         
     print(f'Loading {best_t}th epoch')
     print("Finished Training")
+
+    wandb.finish()
 
 if __name__ == '__main__':
     main_train(trainloader=trainl,valloader=vall)

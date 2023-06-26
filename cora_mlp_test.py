@@ -55,7 +55,7 @@ def main_test(testloader,modelname='model_0.pkl'):
     plt.clf()
 
     cf_matrix = confusion_matrix(shuff_y_test, y_pred)
-    sns.heatmap(cf_matrix, annot=True, fmt='g')
+    sns.heatmap(cf_matrix, annot=True, fmt='g',cmap='Blues')
     plt.savefig('cf_matrix.png')
 
     accuracy = 100 * accuracy_score(shuff_y_test,y_pred)
