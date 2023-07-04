@@ -7,6 +7,13 @@ from torch.utils.data import DataLoader
 from torch_geometric.datasets import Planetoid
 from torch_geometric.nn import GCNConv
 
+import numpy as np
+
+seed_value = 123
+np.random.seed(seed_value)
+torch.manual_seed(seed_value)
+
+
 # Define the GCN model
 class GCN(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -57,7 +64,7 @@ for epoch in range(200):
 # Evaluate the model on the test set
 model.eval()
 output = model(data.x, data.edge_index)
-_, predicted = output.max(dim=1)
+_, predicted = torch.max(output,1)
 correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
 acc = correct / data.test_mask.sum().item()
 print(f'Test Accuracy: {acc:.4f}')

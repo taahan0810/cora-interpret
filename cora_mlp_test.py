@@ -18,13 +18,19 @@ warnings.filterwarnings("ignore")
 
 from cora_mlp_train import MyMLP, X_test, y_test, batch_size
 
+seed_value = 123
+np.random.seed(seed_value)
+torch.manual_seed(seed_value)
+
+
 # print(f"{X_test.shape}")
 # print(f"{y_test.shape}")
 
 testl = DataLoader(torch.cat([X_test,y_test],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)  
 
 def main_test(testloader,modelname='model_0.pkl'):
-    model = MyMLP()
+    # remove the hardcoded values afterwards
+    model = MyMLP(1433,16,7)
     model.load_state_dict(torch.load(modelname))
     model.eval()
 

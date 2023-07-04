@@ -13,6 +13,10 @@ import wandb
 import warnings
 warnings.filterwarnings("ignore")
 
+seed_value = 123
+np.random.seed(seed_value)
+torch.manual_seed(seed_value)
+
 # diff droput layers 
 # remove droput from input 
 # increase layers 
@@ -88,25 +92,27 @@ optimizer = optim.Adam(net.parameters(),lr=learning_rate,weight_decay=5e-4)
 
 
 # start a new wandb run to track this script
-wandb.init(
-    # set the wandb project where this run will be logged
-    project="cora_mlp_train",
-    
-    # track hyperparameters and run metadata
-    config={
-    "learning_rate": learning_rate,
-    "architecture": "MLP",
-    "dataset": "CoraGraphDataset",
-    "epochs": max_epochs,
-    "batch size": batch_size,
-    "hidden dim": hidden_dim,
-    "optimizer": "Adam"
-    }
-)
+
 
 # TRAINING and VALIDATION
 
 def main_train(trainloader, valloader, id=0):
+
+    # wandb.init(
+    # # set the wandb project where this run will be logged
+    #     project="cora_mlp_train",
+        
+    #     # track hyperparameters and run metadata
+    #     config={
+    #     "learning_rate": learning_rate,
+    #     "architecture": "MLP",
+    #     "dataset": "CoraGraphDataset",
+    #     "epochs": max_epochs,
+    #     "batch size": batch_size,
+    #     "hidden dim": hidden_dim,
+    #     "optimizer": "Adam"
+    #     }
+    # )
     patience = 20
     best = 1e9
     best_t = 0
@@ -162,7 +168,7 @@ def main_train(trainloader, valloader, id=0):
 
         print(f'[{epoch + 1}] Validation loss: {running_vloss/lab_sz:.3f}')
 
-        wandb.log({'Epoch':epoch+1,'Train Loss':running_loss/lab_sz,'Val Loss':running_vloss/lab_sz})
+        # wandb.log({'Epoch':epoch+1,'Train Loss':running_loss/lab_sz,'Val Loss':running_vloss/lab_sz})
 
         if running_vloss/lab_sz < best:
             best = running_vloss/lab_sz
@@ -180,7 +186,7 @@ def main_train(trainloader, valloader, id=0):
     print(f'Loading {best_t}th epoch')
     print("Finished Training")
 
-    wandb.finish()
+    # wandb.finish()
 
 if __name__ == '__main__':
     main_train(trainloader=trainl,valloader=vall)
