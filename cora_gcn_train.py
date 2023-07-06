@@ -36,35 +36,45 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dataset = Planetoid(root='/tmp/Cora', name='Cora')
 data = dataset[0].to(device)
 
-# Initialize the GCN model
-input_dim = dataset.num_features
-hidden_dim = 16
-output_dim = dataset.num_classes
-model = GCN(input_dim, hidden_dim, output_dim).to(device)
+def main_gcn(dataset,data):
+    # Initialize the GCN model
+    input_dim = dataset.num_features
+    hidden_dim = 16
+    output_dim = dataset.num_classes
+    model = GCN(input_dim, hidden_dim, output_dim).to(device)
 
-# Define the loss function and optimizer
-criterion = nn.NLLLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    # Define the loss function and optimizer
+    criterion = nn.NLLLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 
-# Train the model
-model.train()
-for epoch in range(200):
-    optimizer.zero_grad()
+    # edge_index = data.edge_index.numpy()
+    # edge_example = edge_index[:,np.where(edge_index[1] == 30)[0]]
+    # print(edge_example)
+
+    # Train the model
+    model.train()
+    for epoch in range(200):
+        optimizer.zero_grad()
+        # print(f"{data.x[data.train_mask].shape=}")
+        # print(f"{data.edge_index[:5]=}")
+        output = model(data.x, data.edge_index)
+        loss = criterion(output[data.train_mask], data.y[data.train_mask])
+        loss.backward()
+        optimizer.step()
+
+        if epoch % 10 == 0:
+            _, predicted = output.max(dim=1)
+            correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
+            acc = correct / data.test_mask.sum().item()
+            # print(f'Epoch: {epoch}, Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
+
+    # Evaluate the model on the test set
+    model.eval()
     output = model(data.x, data.edge_index)
-    loss = criterion(output[data.train_mask], data.y[data.train_mask])
-    loss.backward()
-    optimizer.step()
+    _, predicted = torch.max(output,1)
+    correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
+    acc = correct / data.test_mask.sum().item()
+    print(f'Test Accuracy: {acc:.4f}')
 
-    if epoch % 10 == 0:
-        _, predicted = output.max(dim=1)
-        correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
-        acc = correct / data.test_mask.sum().item()
-        print(f'Epoch: {epoch}, Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
-
-# Evaluate the model on the test set
-model.eval()
-output = model(data.x, data.edge_index)
-_, predicted = torch.max(output,1)
-correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
-acc = correct / data.test_mask.sum().item()
-print(f'Test Accuracy: {acc:.4f}')
+if __name__ == '__main__':
+    main_gcn(dataset,data)

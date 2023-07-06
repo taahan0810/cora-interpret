@@ -12,7 +12,27 @@ np.random.seed(seed_value)
 torch.manual_seed(seed_value)
 
 
-new_X_val,new_X_test,new_y_val,new_y_test = train_test_split(X_test,y_test, test_size=0.50, random_state=seed_value, stratify=y_test)
+
+# print(f"{X_test=}")
+indices = torch.Tensor([i for i in range(len(y_test))])
+
+# print(f"{indices.shape=}")
+
+
+new_X_val,new_X_test,new_y_val,new_y_test = train_test_split(X_test,torch.cat([y_test,indices.unsqueeze(dim=1)],dim=1), test_size=0.50, random_state=seed_value, stratify=y_test)
+
+# print(f"{new_y_test=}") 
+gcn_test_mask = [False for i in range(X_test.shape[0])]
+
+# print(f"{new_y_test[0][1].item()=}")
+
+for i in range(new_y_test.shape[0]):
+    gcn_test_mask[int(new_y_test[i][1].item())] = True
+
+new_y_val = new_y_val[:,0]
+new_y_test = new_y_test[:,0]
+
+# print(new_train_mask)
 
 # print(f"{X_train.shape=}")
 # print(f"{X_val.shape=}")
@@ -37,9 +57,11 @@ def next_sample(mask,comb_train):
 
     return mask
 
+# print(f"{new_y_val.shape=}")
+
 comb_train = torch.cat([new_X_train, new_y_train],dim=1)
-comb_val = torch.cat([new_X_val, new_y_val],dim=1)
-comb_test = torch.cat([new_X_test, new_y_test],dim=1)
+comb_val = torch.cat([new_X_val, new_y_val.unsqueeze(dim=1)],dim=1)
+comb_test = torch.cat([new_X_test, new_y_test.unsqueeze(dim=1)],dim=1)
 
 test_acc_samples = []
 samples = []
