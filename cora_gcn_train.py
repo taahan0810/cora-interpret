@@ -36,7 +36,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dataset = Planetoid(root='/tmp/Cora', name='Cora')
 data = dataset[0].to(device)
 
-def main_gcn(dataset,data):
+def main_gcn(dataset,data,custom_train_mask=data.train_mask,custom_val_mask=data.val_mask,custom_test_mask=data.test_mask):
     # Initialize the GCN model
     input_dim = dataset.num_features
     hidden_dim = 16
@@ -57,24 +57,34 @@ def main_gcn(dataset,data):
         optimizer.zero_grad()
         # print(f"{data.x[data.train_mask].shape=}")
         # print(f"{data.edge_index[:5]=}")
+        # print(f"{data.train_mask=}")
+
         output = model(data.x, data.edge_index)
-        loss = criterion(output[data.train_mask], data.y[data.train_mask])
+        # loss = criterion(output[data.train_mask], data.y[data.train_mask])
+        loss = criterion(output[custom_train_mask], data.y[custom_train_mask])
         loss.backward()
         optimizer.step()
 
         if epoch % 10 == 0:
             _, predicted = output.max(dim=1)
-            correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
-            acc = correct / data.test_mask.sum().item()
+            # correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
+            correct = predicted[custom_test_mask].eq(data.y[custom_test_mask]).sum().item()
+            # acc = correct / data.test_mask.sum().item()
+            acc = correct / np.array(custom_test_mask).sum().item()
             # print(f'Epoch: {epoch}, Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
 
     # Evaluate the model on the test set
     model.eval()
     output = model(data.x, data.edge_index)
     _, predicted = torch.max(output,1)
-    correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
-    acc = correct / data.test_mask.sum().item()
-    print(f'Test Accuracy: {acc:.4f}')
+    # correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
+    # acc = correct / data.test_mask.sum().item()
+    correct = predicted[custom_test_mask].eq(data.y[custom_test_mask]).sum().item()
+    acc = correct / np.array(custom_test_mask).sum().item()
+
+    return acc
 
 if __name__ == '__main__':
-    main_gcn(dataset,data)
+    acc = main_gcn(dataset,data)
+
+    print(f'Test Accuracy: {acc:.4f}')
