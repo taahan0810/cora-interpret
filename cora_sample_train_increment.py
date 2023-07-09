@@ -95,7 +95,7 @@ if __name__ == "__main__":
         main_train(DataLoader(comb_train[mask[:640]],batch_size=batch_size,shuffle=True,num_workers=0),DataLoader(comb_val,batch_size=batch_size,shuffle=True,num_workers=0),i+1)
         accuracy, csr = main_test(DataLoader(comb_test,batch_size=batch_size,shuffle=False,num_workers=0), modelname=f'model_{i+1}.pkl')
 
-        gcn_acc = main_gcn(dataset,data,mask,custom_val_mask,custom_test_mask)
+        gcn_acc = main_gcn(dataset,data,mask,custom_val_mask,custom_test_mask,i+1)
 
         print(f'Test Accuracy: {gcn_acc:.4f}')
 

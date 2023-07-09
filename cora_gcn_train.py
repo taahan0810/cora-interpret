@@ -36,7 +36,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 dataset = Planetoid(root='/tmp/Cora', name='Cora')
 data = dataset[0].to(device)
 
-def main_gcn(dataset,data,custom_train_mask=data.train_mask,custom_val_mask=data.val_mask,custom_test_mask=data.test_mask):
+def main_gcn(dataset,data,custom_train_mask=data.train_mask,custom_val_mask=data.val_mask,custom_test_mask=data.test_mask,id=0):
+
+    patience = 20
+    best = 1e9
+    best_t = 0
+    cnt_wait = 0
+
     # Initialize the GCN model
     input_dim = dataset.num_features
     hidden_dim = 16
@@ -65,6 +71,22 @@ def main_gcn(dataset,data,custom_train_mask=data.train_mask,custom_val_mask=data
         loss.backward()
         optimizer.step()
 
+        with torch.no_grad():
+            output = model(data.x, data.edge_index)
+            loss = criterion(output[custom_val_mask],data.y[custom_val_mask])
+
+        if loss < best:
+            best = loss
+            best_t = epoch + 1
+            cnt_wait = 0
+            torch.save(model.state_dict(), f'gcn_model_{id}.pkl')
+        else:
+            cnt_wait += 1
+
+        if cnt_wait == patience:
+            print('Early Stopping')
+            break
+
         if epoch % 10 == 0:
             _, predicted = output.max(dim=1)
             # correct = predicted[data.test_mask].eq(data.y[data.test_mask]).sum().item()
@@ -73,6 +95,11 @@ def main_gcn(dataset,data,custom_train_mask=data.train_mask,custom_val_mask=data
             acc = correct / np.array(custom_test_mask).sum().item()
             # print(f'Epoch: {epoch}, Loss: {loss.item():.4f}, Accuracy: {acc:.4f}')
 
+    print(f'Loading {best_t}th epoch')
+    print("Finished Training")
+
+    model = GCN(input_dim, hidden_dim, output_dim).to(device)
+    model.load_state_dict(torch.load(f'gcn_model_{id}.pkl')) 
     # Evaluate the model on the test set
     model.eval()
     output = model(data.x, data.edge_index)
