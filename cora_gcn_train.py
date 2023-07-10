@@ -3,30 +3,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
-from torch_geometric.datasets import Planetoid
-from torch_geometric.nn import GCNConv
-
 import numpy as np
+from torch_geometric.datasets import Planetoid
 
-seed_value = 123
-np.random.seed(seed_value)
-torch.manual_seed(seed_value)
+from models import GCN
+from utils import set_seed
 
-
-# Define the GCN model
-class GCN(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(GCN, self).__init__()
-        self.conv1 = GCNConv(input_dim, hidden_dim)
-        self.conv2 = GCNConv(hidden_dim, output_dim)
-
-    def forward(self, x, edge_index):
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        x = F.dropout(x, training=self.training)
-        x = self.conv2(x, edge_index)
-        return F.log_softmax(x, dim=1)
+set_seed()
 
 
 # Set the device (GPU if available, otherwise CPU)

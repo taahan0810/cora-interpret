@@ -8,42 +8,14 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from dgl.data import CoraGraphDataset  
 import wandb 
-
-# Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
 
-seed_value = 123
-np.random.seed(seed_value)
-torch.manual_seed(seed_value)
+from models import MyMLP
+from utils import set_seed
 
-# diff droput layers 
-# remove droput from input 
-# increase layers 
-# 20 40 droput percentages 
+set_seed()
 
-
-class MyMLP(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(MyMLP, self).__init__()
-
-        self.layer1 = nn.Linear(input_dim,hidden_dim)
-        self.layer2 = nn.Linear(hidden_dim,output_dim)
-        self.dropout1 = nn.Dropout(0.5)
-        # self.dropout2 = nn.Dropout(0.5)
-        # self.layer3 = nn.Linear(128,7)
-
-    def forward(self,x):
-
-        # print(x.shape)
-        # x = torch.unsqueeze(x,dim=1)
-        # print(x.shape)
-
-        x = self.dropout1(F.relu(self.layer1(self.dropout1(x))))
-        x = self.layer2(x)
-        # x = self.layer3(x)
-
-        return x
     
 learning_rate = 0.01
 

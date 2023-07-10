@@ -11,17 +11,14 @@ from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-# Ignore warnings
 import warnings
 warnings.filterwarnings("ignore")
 
-from cora_mlp_train import MyMLP, X_test, y_test, batch_size
+from cora_mlp_train import X_test, y_test, batch_size
+from models import MyMLP
+from utils import set_seed
 
-seed_value = 123
-np.random.seed(seed_value)
-torch.manual_seed(seed_value)
-
+set_seed()
 
 # print(f"{X_test.shape}")
 # print(f"{y_test.shape}")

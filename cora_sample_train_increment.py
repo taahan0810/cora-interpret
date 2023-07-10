@@ -1,17 +1,16 @@
 from dgl.data import CoraGraphDataset
 import torch
-from cora_mlp_train import X_train, X_test, y_train, y_test, X_val, y_val, main_train, batch_size
-from cora_mlp_test import main_test
 import numpy as np
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+
+from cora_mlp_train import X_train, X_test, y_train, y_test, X_val, y_val, main_train, batch_size
+from cora_mlp_test import main_test
 from cora_gcn_train import data,dataset,main_gcn
+from utils import set_seed
 
-seed_value = 123
-np.random.seed(seed_value)
-torch.manual_seed(seed_value)
-
+set_seed()
 
 # print(f"{X_test=}")
 indices = torch.Tensor([i for i in range(len(y_test))])
@@ -19,7 +18,7 @@ indices = torch.Tensor([i for i in range(len(y_test))])
 # print(f"{indices.shape=}")
 
 
-new_X_val,new_X_test,new_y_val,new_y_test = train_test_split(X_test,torch.cat([y_test,indices.unsqueeze(dim=1)],dim=1), test_size=0.50, random_state=seed_value, stratify=y_test)
+new_X_val,new_X_test,new_y_val,new_y_test = train_test_split(X_test,torch.cat([y_test,indices.unsqueeze(dim=1)],dim=1), test_size=0.50, random_state=123, stratify=y_test)
 
 # print(f"{new_y_test=}") 
 gcn_test_mask = [False for i in range(X_test.shape[0])]
