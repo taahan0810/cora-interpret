@@ -8,9 +8,9 @@ from sklearn.model_selection import train_test_split
 from cora_mlp_train import X_train, X_test, y_train, y_test, X_val, y_val, main_train, batch_size
 from cora_mlp_test import main_test
 from cora_gcn_train import data,dataset,main_gcn
-from utils import set_seed
+from utils import set_seeds
 
-set_seed()
+set_seeds()
 
 # print(f"{X_test=}")
 indices = torch.Tensor([i for i in range(len(y_test))])

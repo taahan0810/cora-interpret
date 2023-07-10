@@ -16,9 +16,9 @@ warnings.filterwarnings("ignore")
 
 from cora_mlp_train import X_test, y_test, batch_size
 from models import MyMLP
-from utils import set_seed
+from utils import set_seeds
 
-set_seed()
+set_seeds()
 
 # print(f"{X_test.shape}")
 # print(f"{y_test.shape}")

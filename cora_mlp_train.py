@@ -1,22 +1,18 @@
-import os
-import pandas as pd 
-import numpy as np
+import warnings
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from dgl.data import CoraGraphDataset  
-import wandb 
-import warnings
-warnings.filterwarnings("ignore")
+from torch.utils.data import DataLoader
+from dgl.data import CoraGraphDataset
+# import wandb
 
+
+from utils import set_seeds
 from models import MyMLP
-from utils import set_seed
 
-set_seed()
+warnings.filterwarnings("ignore")
+set_seeds()
 
-    
 learning_rate = 0.01
 
 max_epochs = 200
@@ -41,26 +37,23 @@ label = graph.ndata['label']
 X_train, X_val, X_test = feat[train_mask], feat[val_mask], feat[test_mask]
 y_train, y_val, y_test = label[train_mask], label[val_mask], label[test_mask]
 
-# print(X_train.shape, y_train.shape)
-# print(X_val.shape, y_val.shape)
-# print(X_test.shape, y_test.shape)
-
-# print(y_train.unsqueeze(dim=0).shape)
 y_train = y_train.unsqueeze(dim=1)
 y_val = y_val.unsqueeze(dim=1)
 y_test = y_test.unsqueeze(dim=1)
 
-trainl = DataLoader(torch.cat([X_train,y_train],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
-vall = DataLoader(torch.cat([X_val,y_val],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)
+trainl = DataLoader(torch.cat([X_train, y_train], dim=1),
+                    batch_size=batch_size, shuffle=True, num_workers=0)
+vall = DataLoader(torch.cat([X_val, y_val], dim=1),
+                  batch_size=batch_size, shuffle=True, num_workers=0)
 
 input_dim = feat.shape[1]
 hidden_dim = 16
 output_dim = dataset.num_classes
 
-net = MyMLP(input_dim=input_dim,hidden_dim=hidden_dim,output_dim=output_dim)
+net = MyMLP(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim)
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(),lr=learning_rate,weight_decay=5e-4)
+optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=5e-4)
 
 
 # start a new wandb run to track this script
@@ -73,7 +66,7 @@ def main_train(trainloader, valloader, id=0):
     # wandb.init(
     # # set the wandb project where this run will be logged
     #     project="cora_mlp_train",
-        
+
     #     # track hyperparameters and run metadata
     #     config={
     #     "learning_rate": learning_rate,
@@ -92,48 +85,39 @@ def main_train(trainloader, valloader, id=0):
 
     for epoch in range(max_epochs):
 
-        running_loss = 0.0 
-        running_vloss = 0.0 
+        running_loss = 0.0
+        running_vloss = 0.0
         lab_sz = 0
 
-        for i,data in enumerate(trainloader):
+        for i, data in enumerate(trainloader):
 
-            # print(data[:,:-1].shape)
-
-            inputs = data[:,:-1]
-            labels = data[:,-1]
-
-            # print(inputs.shape)
-            # print(labels.shape)
+            inputs = data[:, :-1]
+            labels = data[:, -1]
 
             optimizer.zero_grad()
 
             outputs = net(inputs)
-            # print(f"{outputs=}")
-            # print(f"{labels=}")
-            loss = criterion(outputs,labels.long())
+            loss = criterion(outputs, labels.long())
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item()
             lab_sz += labels.size(0)
 
-        print(f'[{epoch + 1}] Training loss: {running_loss/lab_sz:.3f}',end=" ")
+        print(
+            f'[{epoch + 1}] Training loss: {running_loss/lab_sz:.3f}',
+            end=" ")
 
         lab_sz = 0
 
         with torch.no_grad():
-            for i,data in enumerate(valloader):
-                
-                inputs = data[:,:-1]
-                labels = data[:,-1]
+            for i, data in enumerate(valloader):
 
-                # print(inputs.shape)
-                # print(labels.shape)
+                inputs = data[:, :-1]
+                labels = data[:, -1]
 
                 outputs = net(inputs)
-                # print(outputs.shape)
-                loss = criterion(outputs,labels.long())
+                loss = criterion(outputs, labels.long())
 
                 running_vloss += loss.item()
                 lab_sz += labels.size(0)
@@ -142,8 +126,8 @@ def main_train(trainloader, valloader, id=0):
 
         # wandb.log({'Epoch':epoch+1,'Train Loss':running_loss/lab_sz,'Val Loss':running_vloss/lab_sz})
 
-        if running_vloss/lab_sz < best:
-            best = running_vloss/lab_sz
+        if running_vloss / lab_sz < best:
+            best = running_vloss / lab_sz
             best_t = epoch + 1
             cnt_wait = 0
             torch.save(net.state_dict(), f'model_{id}.pkl')
@@ -154,18 +138,11 @@ def main_train(trainloader, valloader, id=0):
             print('Early Stopping!')
             break
 
-        
     print(f'Loading {best_t}th epoch')
     print("Finished Training")
 
     # wandb.finish()
 
+
 if __name__ == '__main__':
-    main_train(trainloader=trainl,valloader=vall)
-
-
-
-
-
-
-
+    main_train(trainloader=trainl, valloader=vall)

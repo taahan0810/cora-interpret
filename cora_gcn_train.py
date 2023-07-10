@@ -7,9 +7,9 @@ import numpy as np
 from torch_geometric.datasets import Planetoid
 
 from models import GCN
-from utils import set_seed
+from utils import set_seeds
 
-set_seed()
+set_seeds()
 
 
 # Set the device (GPU if available, otherwise CPU)
