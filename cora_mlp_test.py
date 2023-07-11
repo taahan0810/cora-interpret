@@ -1,27 +1,20 @@
-import os
-import pandas as pd 
-import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from dgl.data import CoraGraphDataset
+from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix, classification_report
-from sklearn.metrics import precision_score, recall_score, f1_score, accuracy_score
+from sklearn.metrics import accuracy_score
 import seaborn as sns
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings("ignore")
 
-from cora_mlp_train import X_test, y_test, batch_size
 from models import MyMLP
 from utils import set_seeds
+from dataset import load_dataset
+
+batch_size = 4
 
 set_seeds()
-
-# print(f"{X_test.shape}")
-# print(f"{y_test.shape}")
+_, _, _, _, X_test, y_test, _, _ = load_dataset(batch_size=batch_size)
 
 testl = DataLoader(torch.cat([X_test,y_test],dim=1),batch_size=batch_size,shuffle=True,num_workers=0)  
 

@@ -3,12 +3,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from dgl.data import CoraGraphDataset
 # import wandb
-
 
 from utils import set_seeds
 from models import MyMLP
+from dataset import load_dataset
 
 warnings.filterwarnings("ignore")
 set_seeds()
@@ -19,44 +18,27 @@ max_epochs = 200
 
 batch_size = 4
 
-# Loading the dataset
+# LOADING THE DATASET
 
-dataset = CoraGraphDataset()
-
-graph = dataset[0]
-num_classes = dataset.num_classes
-
-feat = graph.ndata['feat']
-
-train_mask = graph.ndata['train_mask']
-val_mask = graph.ndata['val_mask']
-test_mask = graph.ndata['test_mask']
-
-label = graph.ndata['label']
-
-X_train, X_val, X_test = feat[train_mask], feat[val_mask], feat[test_mask]
-y_train, y_val, y_test = label[train_mask], label[val_mask], label[test_mask]
-
-y_train = y_train.unsqueeze(dim=1)
-y_val = y_val.unsqueeze(dim=1)
-y_test = y_test.unsqueeze(dim=1)
+X_train, y_train, X_val, y_val, _, _, feat, dataset = load_dataset(batch_size=batch_size)
 
 trainl = DataLoader(torch.cat([X_train, y_train], dim=1),
                     batch_size=batch_size, shuffle=True, num_workers=0)
 vall = DataLoader(torch.cat([X_val, y_val], dim=1),
-                  batch_size=batch_size, shuffle=True, num_workers=0)
+                    batch_size=batch_size, shuffle=True, num_workers=0)
+
+# HYPERPARAMETERS
 
 input_dim = feat.shape[1]
 hidden_dim = 16
 output_dim = dataset.num_classes
 
+# MODEL INTIALIZATION
+
 net = MyMLP(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=5e-4)
-
-
-# start a new wandb run to track this script
 
 
 # TRAINING and VALIDATION
